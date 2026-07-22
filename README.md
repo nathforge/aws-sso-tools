@@ -25,11 +25,13 @@ AWS SSO login CLI shows a security code - this displays it in a popup for easy v
 
 ### docker-credential-sso-ecr-login <a name="docker-credential-sso-ecr-login"></a>
 
-When interacting with an ECR repo this will perform an SSO login when needed and then login to ECR.
+When interacting with an ECR repo this will perform an SSO and/or ECR login.
 
-An extension of [aws-docker-credential-ecr-helper](https://github.com/awslabs/amazon-ecr-credential-helper) which must be installed separately.
+You can then use `docker push`, `docker pull` etc. without worrying about auth.
 
-See the [Docker install notes](https://github.com/awslabs/amazon-ecr-credential-helper#docker) on amazon-ecr-credential-helper. Where it adds ` "ecr-login"` to the Docker config, use `"sso-ecr-login"` instead. 
+Requires [aws-docker-credential-ecr-helper](https://github.com/awslabs/amazon-ecr-credential-helper) which must be installed separately.
+
+To install: see [these notes](https://github.com/awslabs/amazon-ecr-credential-helper#docker). Where it adds `"ecr-login"` to the Docker config, use `"sso-ecr-login"` instead. 
 
 
 ## Installation
