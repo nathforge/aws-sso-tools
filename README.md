@@ -20,8 +20,6 @@ Perform an SSO login only when needed.
 
 > ![](docs/aws-sso-show-code.png)
 
-(Full functionality on macOS only at present. The code window won't be displayed otherwise, but login will behave as normal.)
-
 
 ### docker-credential-sso-ecr-login <a name="docker-credential-sso-ecr-login"></a>
 
