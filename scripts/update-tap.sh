@@ -47,6 +47,7 @@ class AwsSsoTools < Formula
     bin.install "aws-sso-maybe-login"
     bin.install "aws-sso-login-showing-code"
     bin.install "aws-sso-show-code"
+    bin.install "aws-sso-run"
   end
 end
 RUBY

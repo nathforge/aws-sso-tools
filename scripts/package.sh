@@ -7,6 +7,7 @@ BINARIES=(
     aws-sso-maybe-login
     aws-sso-login-showing-code
     aws-sso-show-code
+    aws-sso-run
 )
 
 mkdir -p dist

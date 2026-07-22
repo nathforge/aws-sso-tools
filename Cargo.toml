@@ -12,6 +12,7 @@ ctrlc = "3"
 home = "0.5"
 humantime = "2"
 libc = "0.2"
+nix = { version = "0.29", features = ["process"] }
 clap = { version = "4", features = ["derive"] }
 notify-rust = "4"
 serde = { version = "1", features = ["derive"] }
@@ -38,3 +39,7 @@ path = "src/bin/aws-sso-login-showing-code.rs"
 [[bin]]
 name = "aws-sso-show-code"
 path = "src/bin/aws-sso-show-code.rs"
+
+[[bin]]
+name = "aws-sso-run"
+path = "src/bin/aws-sso-run.rs"
