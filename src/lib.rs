@@ -1,6 +1,10 @@
 pub mod active_profile;
 pub mod sso;
 
+pub fn parse_grace_period(s: &str) -> Result<std::time::Duration, String> {
+    humantime::parse_duration(s).map_err(|e| format!("invalid duration: {e}"))
+}
+
 pub fn sibling_bin(name: &str) -> std::path::PathBuf {
     std::env::current_exe()
         .ok()

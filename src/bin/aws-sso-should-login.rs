@@ -3,8 +3,8 @@ use std::time::{Duration, SystemTime};
 
 #[derive(Parser)]
 struct Args {
-    #[arg(long)]
-    grace_period: Option<String>,
+    #[arg(long, value_parser = aws_sso_tools::parse_grace_period)]
+    grace_period: Option<Duration>,
 
     #[arg(long)]
     profile: Option<String>,
@@ -16,13 +16,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
     let profile = aws_sso_tools::active_profile::get(args.profile.as_deref());
-    let grace = match args.grace_period {
-        Some(s) => humantime::parse_duration(&s).unwrap_or_else(|e| {
-            eprintln!("invalid --grace-period: {e}");
-            std::process::exit(2);
-        }),
-        None => Duration::ZERO,
-    };
+    let grace = args.grace_period.unwrap_or(Duration::ZERO);
 
     let (should_login, reason) = match aws_sso_tools::sso::expires_at(&profile) {
         Ok(expires_at) => match expires_at.duration_since(SystemTime::now()) {

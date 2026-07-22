@@ -3,8 +3,8 @@ use std::process::{Command, Stdio};
 
 #[derive(Parser)]
 struct Args {
-    #[arg(long, default_value_t = 0)]
-    grace_period: u64,
+    #[arg(long, value_parser = aws_sso_tools::parse_grace_period)]
+    grace_period: Option<std::time::Duration>,
 
     #[arg(long)]
     profile: Option<String>,
@@ -17,8 +17,10 @@ fn main() {
     let args = Args::parse();
 
     let mut should_login_cmd = Command::new(aws_sso_tools::sibling_bin("aws-sso-should-login"));
+    if let Some(grace) = args.grace_period {
+        should_login_cmd.args(["--grace-period", &humantime::format_duration(grace).to_string()]);
+    }
     should_login_cmd
-        .args(["--grace-period", &args.grace_period.to_string()])
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
