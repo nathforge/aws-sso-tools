@@ -29,6 +29,15 @@ fn main() {
     cmd.stdin(Stdio::inherit())
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit());
+    // Reset SIGINT so the child responds to Ctrl+C (SIG_IGN is inherited across exec).
+    #[cfg(unix)]
+    unsafe {
+        use std::os::unix::process::CommandExt;
+        cmd.pre_exec(|| {
+            libc::signal(libc::SIGINT, libc::SIG_DFL);
+            Ok(())
+        });
+    }
 
     let mut child = cmd.spawn().unwrap_or_else(|e| {
         eprintln!("error: failed to run aws sso login: {e}");
@@ -62,6 +71,15 @@ fn main() {
                 if args.verbose {
                     show_cmd.arg("--verbose");
                 }
+                // Reset SIGINT so the window process responds to Ctrl+C (SIG_IGN is inherited across exec).
+                #[cfg(unix)]
+                unsafe {
+                    use std::os::unix::process::CommandExt;
+                    show_cmd.pre_exec(|| {
+                        libc::signal(libc::SIGINT, libc::SIG_DFL);
+                        Ok(())
+                    });
+                }
                 show_code_child = show_cmd
                     .spawn()
                     .inspect_err(|e| eprintln!("warning: failed to launch aws-sso-show-code: {e}"))
@@ -79,7 +97,14 @@ fn main() {
     if let Some(mut proc) = show_code_child {
         proc.kill().ok();
         if let Ok(s) = proc.wait() {
-            if !s.success() {
+            #[cfg(unix)]
+            let killed_by_sigint = {
+                use std::os::unix::process::ExitStatusExt;
+                s.signal() == Some(libc::SIGINT)
+            };
+            #[cfg(not(unix))]
+            let killed_by_sigint = false;
+            if !s.success() && !killed_by_sigint {
                 eprintln!("warning: aws-sso-show-code exited with status {s}");
             }
         }

@@ -13,22 +13,67 @@ jobs:
       - name: Run tests
         run: cargo test
 
-  release:
+  build-macos:
     needs: [test]
     runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build
+        run: bash scripts/build.sh
+      - name: Package
+        run: bash scripts/package.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-macos
+          path: dist/*.tar.gz
+
+  build-linux:
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install aarch64 cross-linker
+        run: sudo apt-get install -y gcc-aarch64-linux-gnu
+      - name: Build
+        run: bash scripts/build.sh
+      - name: Package
+        run: bash scripts/package.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-linux
+          path: dist/*.tar.gz
+
+  build-windows:
+    needs: [test]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build
+        run: bash scripts/build.sh
+      - name: Package
+        run: bash scripts/package.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-windows
+          path: dist/*.zip
+
+  release:
+    needs: [build-macos, build-linux, build-windows]
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Build
-        run: bash scripts/build.sh
-
-      - name: Package
-        run: bash scripts/package.sh
-
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+      - name: Create checksums
+        run: cd dist && sha256sum * > checksums.txt
       - name: Create GitHub release
         run: |
           gh release create "$GITHUB_REF_NAME" \
@@ -36,10 +81,22 @@ jobs:
             --generate-notes \
             dist/aws-sso-tools_darwin_arm64.tar.gz \
             dist/aws-sso-tools_darwin_amd64.tar.gz \
+            dist/aws-sso-tools_linux_amd64.tar.gz \
+            dist/aws-sso-tools_linux_arm64.tar.gz \
+            dist/aws-sso-tools_windows_amd64.zip \
             dist/checksums.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  update-tap:
+    needs: [release]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-macos
+          path: dist
       - name: Update Homebrew tap
         run: bash scripts/update-tap.sh "$GITHUB_REF_NAME"
         env:
