@@ -1,5 +1,5 @@
+use std::ffi::CString;
 use std::os::unix::io::FromRawFd;
-use std::os::unix::process::CommandExt;
 use std::process::{Command, Stdio};
 
 fn main() {
@@ -24,10 +24,15 @@ fn main() {
         std::process::exit(status.code().unwrap_or(1));
     }
 
-    let err = Command::new("docker-credential-ecr-login")
-        .args(std::env::args().skip(1))
-        .exec();
+    let prog = CString::new("docker-credential-ecr-login").unwrap();
+    let mut cargs = vec![prog.clone()];
+    cargs.extend(std::env::args().skip(1).map(|a| CString::new(a).unwrap()));
 
-    eprintln!("error: failed to exec docker-credential-ecr-login: {err}");
-    std::process::exit(1);
+    match nix::unistd::execvp(&prog, &cargs) {
+        Ok(_) => unreachable!(),
+        Err(e) => {
+            eprintln!("error: failed to exec docker-credential-ecr-login: {e}");
+            std::process::exit(1);
+        }
+    }
 }
