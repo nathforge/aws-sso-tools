@@ -16,7 +16,9 @@ Perform an SSO login only when needed.
 
 ### aws-sso-login-showing-code <a name="aws-sso-login-showing-code"></a>
 
-AWS SSO login CLI shows a security code - this displays that code in a popup.
+AWS SSO login CLI shows a security code - this displays it in a popup for easy verification.
+
+> ![](docs/aws-sso-show-code.png)
 
 (Full functionality on macOS only at present. The code window won't be displayed otherwise, but login will behave as normal.)
 
