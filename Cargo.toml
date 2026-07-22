@@ -1,0 +1,36 @@
+[package]
+name = "aws-sso-tools"
+version = "0.1.0"
+edition = "2024"
+
+[build-dependencies]
+cc = "1"
+
+[dependencies]
+chrono = "0.4"
+libc = "0.2"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha1 = "0.10"
+thiserror = "1"
+
+[[bin]]
+name = "docker-credential-sso-ecr-login"
+path = "src/bin/docker-credential-sso-ecr-login.rs"
+
+[[bin]]
+name = "aws-sso-should-login"
+path = "src/bin/aws-sso-should-login.rs"
+
+[[bin]]
+name = "aws-sso-maybe-login"
+path = "src/bin/aws-sso-maybe-login.rs"
+
+[[bin]]
+name = "aws-sso-login-showing-code"
+path = "src/bin/aws-sso-login-showing-code.rs"
+
+[[bin]]
+name = "aws-sso-show-code"
+path = "src/bin/aws-sso-show-code.rs"
