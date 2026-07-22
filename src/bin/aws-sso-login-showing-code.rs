@@ -11,26 +11,23 @@ struct Args {
     verbose: bool,
 }
 
-// Killed child's PID, written before installing the handler.
 #[cfg(unix)]
 static CHILD_PID: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
-
-#[cfg(unix)]
-extern "C" fn handle_sigint(_: libc::c_int) {
-    let pid = CHILD_PID.load(std::sync::atomic::Ordering::Relaxed);
-    if pid > 0 {
-        unsafe { libc::kill(pid, libc::SIGTERM) };
-    }
-    unsafe { libc::_exit(130) };
-}
 
 fn main() {
     let args = Args::parse();
 
-    #[cfg(unix)]
-    unsafe {
-        libc::signal(libc::SIGINT, handle_sigint as libc::sighandler_t);
-    }
+    ctrlc::set_handler(|| {
+        #[cfg(unix)]
+        {
+            let pid = CHILD_PID.load(std::sync::atomic::Ordering::Relaxed);
+            if pid > 0 {
+                unsafe { libc::kill(pid, libc::SIGTERM) };
+            }
+        }
+        std::process::exit(130);
+    })
+    .unwrap_or_else(|e| eprintln!("warning: failed to install Ctrl-C handler: {e}"));
 
     let mut cmd = Command::new("aws");
     cmd.args(["sso", "login"]);

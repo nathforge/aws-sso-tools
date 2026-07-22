@@ -54,36 +54,7 @@ pub fn expires_at(profile: &str) -> Result<SystemTime, Error> {
 }
 
 fn home_dir() -> Result<PathBuf, Error> {
-    if let Ok(home) = std::env::var("HOME") {
-        if !home.is_empty() {
-            return Ok(PathBuf::from(home));
-        }
-    }
-    passwd_home_dir().ok_or_else(|| Error::Parse("cannot determine home directory".into()))
-}
-
-fn passwd_home_dir() -> Option<PathBuf> {
-    use std::ffi::CStr;
-    let uid = unsafe { libc::getuid() };
-    let mut pwd = unsafe { std::mem::zeroed::<libc::passwd>() };
-    let mut result: *mut libc::passwd = std::ptr::null_mut();
-    // Start at 4 KiB and double on ERANGE, up to 64 KiB.
-    let mut buf = vec![0 as libc::c_char; 4096];
-    loop {
-        let ret = unsafe {
-            libc::getpwuid_r(uid, &mut pwd, buf.as_mut_ptr(), buf.len(), &mut result)
-        };
-        if ret == libc::ERANGE && buf.len() < 65536 {
-            buf.resize(buf.len() * 2, 0);
-            continue;
-        }
-        if ret != 0 || result.is_null() {
-            return None;
-        }
-        break;
-    }
-    let dir = unsafe { CStr::from_ptr((*result).pw_dir) };
-    dir.to_str().ok().map(PathBuf::from)
+    home::home_dir().ok_or_else(|| Error::Parse("cannot determine home directory".into()))
 }
 
 fn aws_config() -> Result<HashMap<String, HashMap<String, String>>, Error> {
