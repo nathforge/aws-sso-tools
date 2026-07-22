@@ -59,20 +59,9 @@ fn home_dir() -> Result<PathBuf, Error> {
             return Ok(PathBuf::from(home));
         }
     }
-    #[cfg(windows)]
-    if let Ok(profile) = std::env::var("USERPROFILE") {
-        if !profile.is_empty() {
-            return Ok(PathBuf::from(profile));
-        }
-    }
-    #[cfg(unix)]
-    if let Some(dir) = passwd_home_dir() {
-        return Ok(dir);
-    }
-    Err(Error::Parse("cannot determine home directory".into()))
+    passwd_home_dir().ok_or_else(|| Error::Parse("cannot determine home directory".into()))
 }
 
-#[cfg(unix)]
 fn passwd_home_dir() -> Option<PathBuf> {
     use std::ffi::CStr;
     let uid = unsafe { libc::getuid() };

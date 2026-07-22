@@ -32,13 +32,6 @@ case "$(uname -s)" in
     tar -czf dist/aws-sso-tools_linux_amd64.tar.gz -C "$STAGING/linux_amd64" "${BINARIES[@]}"
     tar -czf dist/aws-sso-tools_linux_arm64.tar.gz -C "$STAGING/linux_arm64" "${BINARIES[@]}"
     ;;
-  MINGW*|MSYS*|CYGWIN*)
-    STAGING=$(mktemp -d)
-    for b in "${BINARIES[@]}"; do
-        cp "target/x86_64-pc-windows-msvc/release/${b}.exe" "$STAGING/${b}.exe"
-    done
-    7z a dist/aws-sso-tools_windows_amd64.zip "$STAGING"/*.exe
-    ;;
   *)
     echo "Unsupported platform: $(uname -s)" >&2
     exit 1

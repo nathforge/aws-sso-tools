@@ -13,10 +13,6 @@ case "$(uname -s)" in
     CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
       cargo build --release --target aarch64-unknown-linux-gnu
     ;;
-  MINGW*|MSYS*|CYGWIN*)
-    rustup target add x86_64-pc-windows-msvc
-    cargo build --release --target x86_64-pc-windows-msvc
-    ;;
   *)
     echo "Unsupported platform: $(uname -s)" >&2
     exit 1
