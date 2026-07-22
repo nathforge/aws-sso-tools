@@ -12,8 +12,8 @@ BINARIES=(
 mkdir -p dist/staging/darwin_arm64 dist/staging/darwin_amd64
 
 for b in "${BINARIES[@]}"; do
-    cp "rust/target/aarch64-apple-darwin/release/$b" "dist/staging/darwin_arm64/$b"
-    cp "rust/target/x86_64-apple-darwin/release/$b"  "dist/staging/darwin_amd64/$b"
+    cp "target/aarch64-apple-darwin/release/$b" "dist/staging/darwin_arm64/$b"
+    cp "target/x86_64-apple-darwin/release/$b"  "dist/staging/darwin_amd64/$b"
 done
 
 tar -czf dist/aws-sso-tools_darwin_arm64.tar.gz -C dist/staging/darwin_arm64 "${BINARIES[@]}"
