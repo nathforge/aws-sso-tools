@@ -11,14 +11,25 @@ struct Args {
     verbose: bool,
 }
 
+// Killed child's PID, written before installing the handler.
+#[cfg(unix)]
+static CHILD_PID: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
+
+#[cfg(unix)]
+extern "C" fn handle_sigint(_: libc::c_int) {
+    let pid = CHILD_PID.load(std::sync::atomic::Ordering::Relaxed);
+    if pid > 0 {
+        unsafe { libc::kill(pid, libc::SIGTERM) };
+    }
+    unsafe { libc::_exit(130) };
+}
+
 fn main() {
     let args = Args::parse();
 
-    // Keep the pipe open while `aws sso login` (Python) handles Ctrl+C and flushes stdout.
-    // Without this, we die first, breaking the pipe and causing a Python BrokenPipeError.
     #[cfg(unix)]
     unsafe {
-        libc::signal(libc::SIGINT, libc::SIG_IGN);
+        libc::signal(libc::SIGINT, handle_sigint as libc::sighandler_t);
     }
 
     let mut cmd = Command::new("aws");
@@ -29,20 +40,14 @@ fn main() {
     cmd.stdin(Stdio::inherit())
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit());
-    // Reset SIGINT so the child responds to Ctrl+C (SIG_IGN is inherited across exec).
-    #[cfg(unix)]
-    unsafe {
-        use std::os::unix::process::CommandExt;
-        cmd.pre_exec(|| {
-            libc::signal(libc::SIGINT, libc::SIG_DFL);
-            Ok(())
-        });
-    }
 
     let mut child = cmd.spawn().unwrap_or_else(|e| {
         eprintln!("error: failed to run aws sso login: {e}");
         std::process::exit(1);
     });
+
+    #[cfg(unix)]
+    CHILD_PID.store(child.id() as i32, std::sync::atomic::Ordering::Relaxed);
 
     let stdout = child.stdout.take().expect("stdout was piped");
     let mut accumulated = String::new();
@@ -70,15 +75,6 @@ fn main() {
                 show_cmd.arg(&code);
                 if args.verbose {
                     show_cmd.arg("--verbose");
-                }
-                // Reset SIGINT so the window process responds to Ctrl+C (SIG_IGN is inherited across exec).
-                #[cfg(unix)]
-                unsafe {
-                    use std::os::unix::process::CommandExt;
-                    show_cmd.pre_exec(|| {
-                        libc::signal(libc::SIGINT, libc::SIG_DFL);
-                        Ok(())
-                    });
                 }
                 show_code_child = show_cmd
                     .spawn()
