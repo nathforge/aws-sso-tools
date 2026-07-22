@@ -21,13 +21,27 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+
       - uses: dtolnay/rust-toolchain@stable
-      - uses: goreleaser/goreleaser-action@v6
-        with:
-          version: "~> v2"
-          args: release --clean
+
+      - name: Build
+        run: bash scripts/build.sh
+
+      - name: Package
+        run: bash scripts/package.sh
+
+      - name: Create GitHub release
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            dist/aws-sso-tools_darwin_arm64.tar.gz \
+            dist/aws-sso-tools_darwin_amd64.tar.gz \
+            dist/checksums.txt
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TAP_TOKEN: ${{ secrets.GH_TAP_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Homebrew tap
+        run: bash scripts/update-tap.sh "$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TAP_TOKEN }}
