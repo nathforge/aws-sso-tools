@@ -92,18 +92,7 @@ fn main() {
 
     if let Some(mut proc) = show_code_child {
         proc.kill().ok();
-        if let Ok(s) = proc.wait() {
-            #[cfg(unix)]
-            let killed_by_sigint = {
-                use std::os::unix::process::ExitStatusExt;
-                s.signal() == Some(libc::SIGINT)
-            };
-            #[cfg(not(unix))]
-            let killed_by_sigint = false;
-            if !s.success() && !killed_by_sigint {
-                eprintln!("warning: aws-sso-show-code exited with status {s}");
-            }
-        }
+        proc.wait().ok();
     } else {
         eprintln!("warning: aws sso login exited without showing a device code");
     }
