@@ -46,7 +46,15 @@ mod show_code {
     #[cfg(not(target_os = "macos"))]
     mod platform {
         pub fn show(code: &str) {
-            eprintln!("AWS SSO code: {code}");
+            if let Err(e) = notify_rust::Notification::new()
+                .summary("AWS SSO Code")
+                .body(code)
+                .timeout(notify_rust::Timeout::Never)
+                .show()
+            {
+                eprintln!("AWS SSO code: {code}");
+                eprintln!("(notification failed: {e})");
+            }
         }
     }
 
