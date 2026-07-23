@@ -7,7 +7,7 @@ Enable automatic AWS SSO login.
 
 ## Installation
 
-macOS: fully supported; Linux: untested; Windows: not supported yet.
+macOS: fully supported; Linux: untested.
 
 Homebrew:
 ```shell
