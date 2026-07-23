@@ -61,11 +61,13 @@ To install see [these notes](https://github.com/awslabs/amazon-ecr-credential-he
 
 ## The helpers
 
-Helper binaries used by the above tools, and for you to write your own tools.
+Helper binaries used by the above commands, and for you to write your own tools.
 
 ### aws-sso-login-showing-code
 
-`aws sso login` shows a security code - this displays it in a popup for easy verification.
+`aws sso login` displays a security code which you're supposed to verify in the web UI.
+
+This command runs `aws sso login` and shows the code in a popup for easy verification.
 
 > ![](docs/aws-sso-show-code.png)
 
