@@ -1,8 +1,15 @@
 # AWS SSO Tools
 
-Enable automatic AWS SSO login.
-
 **The goal: never run `aws sso login` again.**
+
+[aws-sso-tools](https://github.com/nathforge/aws-sso-tools) are helpers to automatically run `aws sso login` just before you need it. There’s wrappers for the AWS CLI, for your own services, and for Docker pull/push.
+
+Design considerations:
+ * The commands are small units that you can plumb into your own tooling - e.g `should-login`, `login-showing-code`.
+ * The login check is purely local which adds little overhead, parsing from `~/.aws/sso/cache`. For example `should-login` takes 30ms on my machine.
+
+Shortcomings:
+ * Long-running services won't trigger another SSO login upon expiry - it only occurs on program invocation.
 
 
 ## Installation
